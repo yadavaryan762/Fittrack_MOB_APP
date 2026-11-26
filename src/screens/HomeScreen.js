@@ -15,32 +15,17 @@ import StatCard from '../components/dashboard/StatCard';
 import QuickActions from '../components/dashboard/QuickActions';
 import RecentActivityItem from '../components/dashboard/RecentActivityItem';
 import { COLORS, SPACING } from '../constants/theme';
+import { useActivity } from '../context/ActivityContext';
 
 export default function HomeScreen({ navigation }) {
-  // Initial dashboard state - clean and ready for AsyncStorage connection
   const [userName] = useState('Aryan');
-  const [dailyStats] = useState({
-    steps: {
-      current: 7420,
-      goal: 10000,
-      unit: 'steps',
-    },
-    calories: {
-      current: 480,
-      goal: 650,
-      unit: 'kcal',
-    },
-    water: {
-      current: 1800,
-      goal: 2500,
-      unit: 'ml',
-    },
-    duration: {
-      current: 45,
-      goal: 60,
-      unit: 'min',
-    },
-  });
+  const {
+    activity,
+    goals,
+    getOverallProgress,
+    getCompletedGoalsCount,
+    addActivityMetric,
+  } = useActivity();
 
   const [recentActivities] = useState([
     {
@@ -61,19 +46,16 @@ export default function HomeScreen({ navigation }) {
     },
   ]);
 
-  // Compute overall daily fitness goal progress percentage
-  const calculateGoalPercentage = () => {
-    const stepsRatio = Math.min(dailyStats.steps.current / dailyStats.steps.goal, 1);
-    const caloriesRatio = Math.min(dailyStats.calories.current / dailyStats.calories.goal, 1);
-    const waterRatio = Math.min(dailyStats.water.current / dailyStats.water.goal, 1);
-    const durationRatio = Math.min(dailyStats.duration.current / dailyStats.duration.goal, 1);
-
-    const averageRatio = (stepsRatio + caloriesRatio + waterRatio + durationRatio) / 4;
-    return Math.round(averageRatio * 100);
-  };
-
   const handleNavigateToActivity = () => {
     navigation.navigate('Activity');
+  };
+
+  const handleQuickAddWater = () => {
+    addActivityMetric('water', 250);
+  };
+
+  const handleQuickAddSteps = () => {
+    addActivityMetric('steps', 1000);
   };
 
   return (
@@ -87,16 +69,16 @@ export default function HomeScreen({ navigation }) {
 
         {/* Hero Daily Goal Progress Card */}
         <GoalProgressCard
-          completionPercentage={calculateGoalPercentage()}
-          completedGoals={3}
+          completionPercentage={getOverallProgress()}
+          completedGoals={getCompletedGoalsCount()}
           totalGoals={4}
         />
 
         {/* Quick Actions Bar */}
         <QuickActions
           onAddWorkout={handleNavigateToActivity}
-          onAddWater={handleNavigateToActivity}
-          onAddSteps={handleNavigateToActivity}
+          onAddWater={handleQuickAddWater}
+          onAddSteps={handleQuickAddSteps}
         />
 
         {/* Today's Metrics Grid */}
@@ -112,42 +94,42 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.statsRow}>
             <StatCard
               title="Steps"
-              value={dailyStats.steps.current.toLocaleString()}
-              unit={dailyStats.steps.unit}
-              goal={dailyStats.steps.goal.toLocaleString()}
+              value={(activity.steps || 0).toLocaleString()}
+              unit="steps"
+              goal={(goals.steps || 10000).toLocaleString()}
               icon="footsteps"
               color={COLORS.steps}
-              progress={dailyStats.steps.current / dailyStats.steps.goal}
+              progress={(activity.steps || 0) / (goals.steps || 1)}
             />
             <StatCard
               title="Calories"
-              value={dailyStats.calories.current}
-              unit={dailyStats.calories.unit}
-              goal={dailyStats.calories.goal}
+              value={activity.calories || 0}
+              unit="kcal"
+              goal={goals.calories || 600}
               icon="flame"
               color={COLORS.calories}
-              progress={dailyStats.calories.current / dailyStats.calories.goal}
+              progress={(activity.calories || 0) / (goals.calories || 1)}
             />
           </View>
 
           <View style={styles.statsRow}>
             <StatCard
               title="Water"
-              value={dailyStats.water.current.toLocaleString()}
-              unit={dailyStats.water.unit}
-              goal={dailyStats.water.goal.toLocaleString()}
+              value={(activity.water || 0).toLocaleString()}
+              unit="ml"
+              goal={(goals.water || 2500).toLocaleString()}
               icon="water"
               color={COLORS.water}
-              progress={dailyStats.water.current / dailyStats.water.goal}
+              progress={(activity.water || 0) / (goals.water || 1)}
             />
             <StatCard
               title="Duration"
-              value={dailyStats.duration.current}
-              unit={dailyStats.duration.unit}
-              goal={dailyStats.duration.goal}
+              value={activity.duration || 0}
+              unit="min"
+              goal={goals.duration || 60}
               icon="timer"
               color={COLORS.duration}
-              progress={dailyStats.duration.current / dailyStats.duration.goal}
+              progress={(activity.duration || 0) / (goals.duration || 1)}
             />
           </View>
         </View>
@@ -163,14 +145,14 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {recentActivities.map((activity) => (
+        {recentActivities.map((item) => (
           <RecentActivityItem
-            key={activity.id}
-            title={activity.title}
-            category={activity.category}
-            duration={activity.duration}
-            calories={activity.calories}
-            time={activity.time}
+            key={item.id}
+            title={item.title}
+            category={item.category}
+            duration={item.duration}
+            calories={item.calories}
+            time={item.time}
           />
         ))}
 

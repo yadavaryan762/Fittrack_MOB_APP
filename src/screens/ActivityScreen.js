@@ -1,21 +1,203 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
+import Card from '../components/common/Card';
+import ProgressBar from '../components/common/ProgressBar';
+import StepTrackerCard from '../components/activity/StepTrackerCard';
+import WaterTrackerCard from '../components/activity/WaterTrackerCard';
+import CalorieTrackerCard from '../components/activity/CalorieTrackerCard';
+import GoalSettingModal from '../components/activity/GoalSettingModal';
 import { COLORS, SPACING, RADIUS } from '../constants/theme';
+import { useActivity } from '../context/ActivityContext';
 
 export default function ActivityScreen() {
+  const {
+    activity,
+    goals,
+    getOverallProgress,
+    getCompletedGoalsCount,
+    isGoalReached,
+    setActivity,
+  } = useActivity();
+
+  const [goalModalVisible, setGoalModalVisible] = useState(false);
+
+  // Formatted date
+  const todayFormatted = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+
+  const overallProgress = getOverallProgress();
+  const completedGoals = getCompletedGoalsCount();
+
+  // Reset function with confirmation
+  const handleResetActivity = () => {
+    Alert.alert(
+      'Reset Daily Activity?',
+      'This will reset your recorded steps, water, and active calories for today to zero.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: () => {
+            setActivity({
+              steps: 0,
+              water: 0,
+              calories: 0,
+              duration: 0,
+            });
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Daily Activity</Text>
-        <Text style={styles.subtitle}>Log and monitor your daily activity targets</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Activity Tracking</Text>
-        <Text style={styles.cardText}>
-          Steps, water intake, and calorie logging will be configured here.
-        </Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Top Screen Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.dateText}>{todayFormatted}</Text>
+            <Text style={styles.title}>Daily Activity</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.setGoalsBtn}
+            onPress={() => setGoalModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="flag" size={16} color={COLORS.primary} style={{ marginRight: 4 }} />
+            <Text style={styles.setGoalsBtnText}>Goals</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Daily Summary Overview Banner */}
+        <Card style={styles.summaryCard}>
+          <View style={styles.summaryTop}>
+            <View style={styles.summaryTextColumn}>
+              <View style={styles.summaryTag}>
+                <Ionicons name="stats-chart" size={13} color={COLORS.primary} />
+                <Text style={styles.summaryTagText}>DAILY PROGRESS SUMMARY</Text>
+              </View>
+              <Text style={styles.summaryTitle}>
+                {overallProgress >= 100
+                  ? 'All Goals Crushed! 🏆'
+                  : overallProgress >= 50
+                  ? 'Great Momentum! 🔥'
+                  : 'Start Your Day Strong! 💪'}
+              </Text>
+              <Text style={styles.summarySubtitle}>
+                {completedGoals} of 4 targets completed. Keep up the good pace!
+              </Text>
+            </View>
+
+            <View style={styles.progressCircle}>
+              <Text style={styles.progressCircleText}>{overallProgress}%</Text>
+              <Text style={styles.progressCircleSub}>Daily</Text>
+            </View>
+          </View>
+
+          <ProgressBar
+            progress={overallProgress}
+            color={COLORS.primary}
+            height={8}
+            style={styles.summaryProgress}
+          />
+
+          {/* Quick Target Badges Row */}
+          <View style={styles.badgesRow}>
+            <View style={[styles.targetBadge, isGoalReached('steps') && styles.targetBadgeDone]}>
+              <Ionicons
+                name={isGoalReached('steps') ? 'checkmark-circle' : 'footsteps'}
+                size={13}
+                color={isGoalReached('steps') ? COLORS.steps : COLORS.textMuted}
+              />
+              <Text style={[styles.targetBadgeText, isGoalReached('steps') && styles.targetBadgeTextDone]}>
+                Steps
+              </Text>
+            </View>
+
+            <View style={[styles.targetBadge, isGoalReached('water') && styles.targetBadgeDone]}>
+              <Ionicons
+                name={isGoalReached('water') ? 'checkmark-circle' : 'water'}
+                size={13}
+                color={isGoalReached('water') ? COLORS.water : COLORS.textMuted}
+              />
+              <Text style={[styles.targetBadgeText, isGoalReached('water') && styles.targetBadgeTextDone]}>
+                Water
+              </Text>
+            </View>
+
+            <View style={[styles.targetBadge, isGoalReached('calories') && styles.targetBadgeDone]}>
+              <Ionicons
+                name={isGoalReached('calories') ? 'checkmark-circle' : 'flame'}
+                size={13}
+                color={isGoalReached('calories') ? COLORS.calories : COLORS.textMuted}
+              />
+              <Text style={[styles.targetBadgeText, isGoalReached('calories') && styles.targetBadgeTextDone]}>
+                Calories
+              </Text>
+            </View>
+
+            <View style={[styles.targetBadge, isGoalReached('duration') && styles.targetBadgeDone]}>
+              <Ionicons
+                name={isGoalReached('duration') ? 'checkmark-circle' : 'timer'}
+                size={13}
+                color={isGoalReached('duration') ? COLORS.duration : COLORS.textMuted}
+              />
+              <Text style={[styles.targetBadgeText, isGoalReached('duration') && styles.targetBadgeTextDone]}>
+                Active
+              </Text>
+            </View>
+          </View>
+        </Card>
+
+        {/* Section Heading */}
+        <Text style={styles.sectionHeading}>Track & Record Activity</Text>
+
+        {/* Step Tracker Card */}
+        <StepTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+
+        {/* Water Tracker Card */}
+        <WaterTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+
+        {/* Calorie Tracker Card */}
+        <CalorieTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+
+        {/* Reset / Clear Today's Activity Option */}
+        <TouchableOpacity
+          style={styles.resetButton}
+          onPress={handleResetActivity}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="refresh" size={16} color={COLORS.textMuted} />
+          <Text style={styles.resetButtonText}>Reset Today's Activity</Text>
+        </TouchableOpacity>
+
+        {/* Spacer at bottom */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+
+      {/* Goal Setting Modal */}
+      <GoalSettingModal
+        visible={goalModalVisible}
+        onClose={() => setGoalModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -24,38 +206,157 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  scrollContent: {
     paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
   header: {
-    marginTop: SPACING.md,
-    marginBottom: SPACING.lg,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginVertical: SPACING.sm,
+  },
+  dateText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 26,
+    fontWeight: '800',
     color: COLORS.textPrimary,
   },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: SPACING.xs,
+  setGoalsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryLight,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.round,
   },
-  card: {
+  setGoalsBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primaryDark,
+  },
+  summaryCard: {
     backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    borderWidth: 1.5,
+    borderColor: COLORS.primaryLight,
+  },
+  summaryTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryTextColumn: {
+    flex: 1,
+    paddingRight: SPACING.sm,
+  },
+  summaryTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  summaryTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginLeft: 4,
+    letterSpacing: 0.5,
+  },
+  summaryTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: 2,
+  },
+  summarySubtitle: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    lineHeight: 16,
+  },
+  progressCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: RADIUS.round,
+    backgroundColor: COLORS.primaryLight,
+    borderWidth: 3,
+    borderColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  progressCircleText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.primaryDark,
+  },
+  progressCircleSub: {
+    fontSize: 9,
+    fontWeight: '600',
+    color: COLORS.primaryDark,
+    textTransform: 'uppercase',
+  },
+  summaryProgress: {
+    marginVertical: SPACING.sm,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  targetBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: RADIUS.round,
     borderWidth: 1,
     borderColor: COLORS.cardBorder,
   },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.textPrimary,
-    marginBottom: SPACING.xs,
+  targetBadgeDone: {
+    backgroundColor: '#D1FAE5',
+    borderColor: '#A7F3D0',
   },
-  cardText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 20,
+  targetBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginLeft: 4,
+  },
+  targetBadgeTextDone: {
+    color: COLORS.primaryDark,
+    fontWeight: '700',
+  },
+  sectionHeading: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    marginBottom: SPACING.sm,
+    marginTop: SPACING.xs,
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginTop: SPACING.xs,
+    borderRadius: RADIUS.md,
+  },
+  resetButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginLeft: 6,
+  },
+  bottomSpacer: {
+    height: SPACING.lg,
   },
 });

@@ -19,8 +19,17 @@ FitTrack is a modern, cross-platform mobile fitness and activity tracking applic
 - **Reusable Component Architecture**:
   - Modular cards (`Card`), adaptive progress bars (`ProgressBar`), dynamic headers (`Header`), buttons (`Button`), and stat cards (`StatCard`).
 
+### Day 2 – Completed Daily Fitness Tracking
+- **Interactive Daily Activity Tracking Screen**:
+  - **Steps Tracking Card**: Current vs. target counter, percentage progress bar, 1-tap quick add chips (`+500`, `+1,000`, `+2,500`), and manual set modal.
+  - **Water Intake Card**: Dual display in milliliters (ml) and standard glasses (250ml/glass), quick add buttons (`+250ml`, `+500ml`, `-250ml`), and custom entry modal.
+  - **Calorie Tracker Card**: Active burn counter, goal progress bar, quick increment chips (`+100`, `+250 kcal`), and manual logging.
+- **Dynamic Goal Setting & State Management**:
+  - Centralized `ActivityContext` linking Dashboard (`HomeScreen`) and Activity (`ActivityScreen`) with zero third-party state libraries.
+  - `GoalSettingModal` allowing users to configure custom targets for steps, water, calories, and duration with immediate real-time synchronization.
+  - Daily progress summary banner with 4-target status pills (`Steps`, `Water`, `Calories`, `Duration`).
+
 ### Upcoming Development Milestones
-- **Day 2 (26 Nov)**: Daily fitness tracking (manual step entry, water intake tracking, active calories, dynamic progress updates).
 - **Day 3 (27 Nov)**: Workout management (workout logger, categories, edit/delete workout operations, activity history).
 - **Day 4 (28 Nov)**: Statistics & local data persistence (`AsyncStorage`, weekly summary charts, profile & target settings).
 - **Day 5 (29 Nov)**: Testing, edge case validation, and final presentation preparation.
@@ -127,8 +136,8 @@ FitTrack/
 | Date | Milestone | Status |
 |---|---|:---:|
 | **25 Nov 2026** | **Day 1:** Project initialization, navigation, and dashboard UI | ✅ Completed |
-| **26 Nov 2026** | **Day 2:** Daily fitness tracking (steps, water, calories, goals) | ⏳ Next |
-| **27 Nov 2026** | **Day 3:** Workout management (CRUD, categories, history) | 📋 Pending |
+| **26 Nov 2026** | **Day 2:** Daily fitness tracking (steps, water, calories, goals) | ✅ Completed |
+| **27 Nov 2026** | **Day 3:** Workout management (CRUD, categories, history) | ⏳ Next |
 | **28 Nov 2026** | **Day 4:** Statistics, charts, profile settings, AsyncStorage | 📋 Pending |
 | **29 Nov 2026** | **Day 5:** Testing, edge-case fixes, and final project submission | 📋 Pending |
 
