@@ -4,15 +4,18 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ActivityProvider } from './src/context/ActivityContext';
+import { WorkoutProvider } from './src/context/WorkoutContext';
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <ActivityProvider>
-        <NavigationContainer>
-          <StatusBar style="dark" />
-          <AppNavigator />
-        </NavigationContainer>
+        <WorkoutProvider>
+          <NavigationContainer>
+            <StatusBar style="dark" />
+            <AppNavigator />
+          </NavigationContainer>
+        </WorkoutProvider>
       </ActivityProvider>
     </SafeAreaProvider>
   );
