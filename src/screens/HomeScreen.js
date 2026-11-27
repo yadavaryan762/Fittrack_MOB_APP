@@ -14,11 +14,15 @@ import GoalProgressCard from '../components/dashboard/GoalProgressCard';
 import StatCard from '../components/dashboard/StatCard';
 import QuickActions from '../components/dashboard/QuickActions';
 import RecentActivityItem from '../components/dashboard/RecentActivityItem';
-import { COLORS, SPACING } from '../constants/theme';
+import WorkoutFormModal from '../components/workout/WorkoutFormModal';
+import { COLORS, SPACING, RADIUS } from '../constants/theme';
 import { useActivity } from '../context/ActivityContext';
+import { useWorkouts } from '../context/WorkoutContext';
 
 export default function HomeScreen({ navigation }) {
   const [userName] = useState('Aryan');
+  const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
+
   const {
     activity,
     goals,
@@ -27,27 +31,14 @@ export default function HomeScreen({ navigation }) {
     addActivityMetric,
   } = useActivity();
 
-  const [recentActivities] = useState([
-    {
-      id: '1',
-      title: 'Morning Outdoor Run',
-      category: 'Running',
-      duration: '30 min',
-      calories: '310 kcal',
-      time: 'Today, 7:15 AM',
-    },
-    {
-      id: '2',
-      title: 'Core & Upper Body Gym',
-      category: 'Gym',
-      duration: '45 min',
-      calories: '260 kcal',
-      time: 'Yesterday, 6:00 PM',
-    },
-  ]);
+  const { workouts, addWorkout } = useWorkouts();
 
   const handleNavigateToActivity = () => {
-    navigation.navigate('Activity');
+    navigation.navigate('Activity', { tab: 'tracker' });
+  };
+
+  const handleNavigateToWorkouts = () => {
+    navigation.navigate('Activity', { tab: 'workouts' });
   };
 
   const handleQuickAddWater = () => {
@@ -57,6 +48,15 @@ export default function HomeScreen({ navigation }) {
   const handleQuickAddSteps = () => {
     addActivityMetric('steps', 1000);
   };
+
+  const handleSaveWorkoutFromHome = (workoutData) => {
+    addWorkout(workoutData);
+    addActivityMetric('duration', workoutData.duration);
+    addActivityMetric('calories', workoutData.calories);
+  };
+
+  // Recent 3 workouts
+  const recentWorkouts = workouts.slice(0, 3);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -76,7 +76,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Quick Actions Bar */}
         <QuickActions
-          onAddWorkout={handleNavigateToActivity}
+          onAddWorkout={() => setWorkoutModalVisible(true)}
           onAddWater={handleQuickAddWater}
           onAddSteps={handleQuickAddSteps}
         />
@@ -137,28 +137,44 @@ export default function HomeScreen({ navigation }) {
         {/* Recent Activity List Preview */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Workouts</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Activity')}>
+          <TouchableOpacity onPress={handleNavigateToWorkouts}>
             <View style={styles.viewMoreRow}>
-              <Text style={styles.seeAllText}>View All</Text>
+              <Text style={styles.seeAllText}>View All ({workouts.length})</Text>
               <Ionicons name="chevron-forward" size={14} color={COLORS.primary} />
             </View>
           </TouchableOpacity>
         </View>
 
-        {recentActivities.map((item) => (
-          <RecentActivityItem
-            key={item.id}
-            title={item.title}
-            category={item.category}
-            duration={item.duration}
-            calories={item.calories}
-            time={item.time}
-          />
-        ))}
+        {recentWorkouts.length === 0 ? (
+          <View style={styles.emptyRecentBox}>
+            <Text style={styles.emptyRecentText}>No workouts recorded yet.</Text>
+            <TouchableOpacity onPress={() => setWorkoutModalVisible(true)}>
+              <Text style={styles.emptyRecentAction}>+ Log your first workout</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          recentWorkouts.map((item) => (
+            <RecentActivityItem
+              key={item.id}
+              title={item.name}
+              category={item.category}
+              duration={`${item.duration} min`}
+              calories={`${item.calories} kcal`}
+              time={item.date}
+            />
+          ))
+        )}
 
         {/* Bottom spacing to ensure clean scroll above tab bar */}
         <View style={styles.bottomSpacer} />
       </ScrollView>
+
+      {/* Workout Form Modal */}
+      <WorkoutFormModal
+        visible={workoutModalVisible}
+        onClose={() => setWorkoutModalVisible(false)}
+        onSubmit={handleSaveWorkoutFromHome}
+      />
     </SafeAreaView>
   );
 }
@@ -198,6 +214,25 @@ const styles = StyleSheet.create({
   },
   statsRow: {
     flexDirection: 'row',
+  },
+  emptyRecentBox: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.cardBorder,
+    marginVertical: SPACING.xs,
+  },
+  emptyRecentText: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    marginBottom: 4,
+  },
+  emptyRecentAction: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   bottomSpacer: {
     height: SPACING.lg,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,20 +16,28 @@ import StepTrackerCard from '../components/activity/StepTrackerCard';
 import WaterTrackerCard from '../components/activity/WaterTrackerCard';
 import CalorieTrackerCard from '../components/activity/CalorieTrackerCard';
 import GoalSettingModal from '../components/activity/GoalSettingModal';
+import WorkoutHistoryView from '../components/workout/WorkoutHistoryView';
 import { COLORS, SPACING, RADIUS } from '../constants/theme';
 import { useActivity } from '../context/ActivityContext';
 
-export default function ActivityScreen() {
+export default function ActivityScreen({ route }) {
   const {
-    activity,
-    goals,
     getOverallProgress,
     getCompletedGoalsCount,
     isGoalReached,
     setActivity,
   } = useActivity();
 
+  // Active sub-tab: 'tracker' | 'workouts'
+  const [activeTab, setActiveTab] = useState('tracker');
   const [goalModalVisible, setGoalModalVisible] = useState(false);
+
+  // Sync tab if passed via route params
+  useEffect(() => {
+    if (route?.params?.tab) {
+      setActiveTab(route.params.tab);
+    }
+  }, [route?.params?.tab]);
 
   // Formatted date
   const todayFormatted = new Date().toLocaleDateString('en-US', {
@@ -41,7 +49,7 @@ export default function ActivityScreen() {
   const overallProgress = getOverallProgress();
   const completedGoals = getCompletedGoalsCount();
 
-  // Reset function with confirmation
+  // Reset daily activity function with confirmation
   const handleResetActivity = () => {
     Alert.alert(
       'Reset Daily Activity?',
@@ -66,130 +74,175 @@ export default function ActivityScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Top Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.dateText}>{todayFormatted}</Text>
+          <Text style={styles.title}>Activity & Workouts</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.setGoalsBtn}
+          onPress={() => setGoalModalVisible(true)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="flag" size={15} color={COLORS.primary} style={{ marginRight: 4 }} />
+          <Text style={styles.setGoalsBtnText}>Goals</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Segmented Tab Switcher */}
+      <View style={styles.tabSwitcher}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'tracker' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('tracker')}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="speedometer-outline"
+            size={16}
+            color={activeTab === 'tracker' ? COLORS.primary : COLORS.textMuted}
+            style={{ marginRight: 6 }}
+          />
+          <Text
+            style={[styles.tabButtonText, activeTab === 'tracker' && styles.tabButtonTextActive]}
+          >
+            Daily Tracker
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'workouts' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('workouts')}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name="barbell-outline"
+            size={16}
+            color={activeTab === 'workouts' ? COLORS.primary : COLORS.textMuted}
+            style={{ marginRight: 6 }}
+          />
+          <Text
+            style={[styles.tabButtonText, activeTab === 'workouts' && styles.tabButtonTextActive]}
+          >
+            Workout History
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Top Screen Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.dateText}>{todayFormatted}</Text>
-            <Text style={styles.title}>Daily Activity</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.setGoalsBtn}
-            onPress={() => setGoalModalVisible(true)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="flag" size={16} color={COLORS.primary} style={{ marginRight: 4 }} />
-            <Text style={styles.setGoalsBtnText}>Goals</Text>
-          </TouchableOpacity>
-        </View>
+        {activeTab === 'tracker' ? (
+          <>
+            {/* Daily Summary Overview Banner */}
+            <Card style={styles.summaryCard}>
+              <View style={styles.summaryTop}>
+                <View style={styles.summaryTextColumn}>
+                  <View style={styles.summaryTag}>
+                    <Ionicons name="stats-chart" size={13} color={COLORS.primary} />
+                    <Text style={styles.summaryTagText}>DAILY PROGRESS SUMMARY</Text>
+                  </View>
+                  <Text style={styles.summaryTitle}>
+                    {overallProgress >= 100
+                      ? 'All Goals Crushed! 🏆'
+                      : overallProgress >= 50
+                      ? 'Great Momentum! 🔥'
+                      : 'Start Your Day Strong! 💪'}
+                  </Text>
+                  <Text style={styles.summarySubtitle}>
+                    {completedGoals} of 4 targets completed. Keep up the good pace!
+                  </Text>
+                </View>
 
-        {/* Daily Summary Overview Banner */}
-        <Card style={styles.summaryCard}>
-          <View style={styles.summaryTop}>
-            <View style={styles.summaryTextColumn}>
-              <View style={styles.summaryTag}>
-                <Ionicons name="stats-chart" size={13} color={COLORS.primary} />
-                <Text style={styles.summaryTagText}>DAILY PROGRESS SUMMARY</Text>
+                <View style={styles.progressCircle}>
+                  <Text style={styles.progressCircleText}>{overallProgress}%</Text>
+                  <Text style={styles.progressCircleSub}>Daily</Text>
+                </View>
               </View>
-              <Text style={styles.summaryTitle}>
-                {overallProgress >= 100
-                  ? 'All Goals Crushed! 🏆'
-                  : overallProgress >= 50
-                  ? 'Great Momentum! 🔥'
-                  : 'Start Your Day Strong! 💪'}
-              </Text>
-              <Text style={styles.summarySubtitle}>
-                {completedGoals} of 4 targets completed. Keep up the good pace!
-              </Text>
-            </View>
 
-            <View style={styles.progressCircle}>
-              <Text style={styles.progressCircleText}>{overallProgress}%</Text>
-              <Text style={styles.progressCircleSub}>Daily</Text>
-            </View>
-          </View>
-
-          <ProgressBar
-            progress={overallProgress}
-            color={COLORS.primary}
-            height={8}
-            style={styles.summaryProgress}
-          />
-
-          {/* Quick Target Badges Row */}
-          <View style={styles.badgesRow}>
-            <View style={[styles.targetBadge, isGoalReached('steps') && styles.targetBadgeDone]}>
-              <Ionicons
-                name={isGoalReached('steps') ? 'checkmark-circle' : 'footsteps'}
-                size={13}
-                color={isGoalReached('steps') ? COLORS.steps : COLORS.textMuted}
+              <ProgressBar
+                progress={overallProgress}
+                color={COLORS.primary}
+                height={8}
+                style={styles.summaryProgress}
               />
-              <Text style={[styles.targetBadgeText, isGoalReached('steps') && styles.targetBadgeTextDone]}>
-                Steps
-              </Text>
-            </View>
 
-            <View style={[styles.targetBadge, isGoalReached('water') && styles.targetBadgeDone]}>
-              <Ionicons
-                name={isGoalReached('water') ? 'checkmark-circle' : 'water'}
-                size={13}
-                color={isGoalReached('water') ? COLORS.water : COLORS.textMuted}
-              />
-              <Text style={[styles.targetBadgeText, isGoalReached('water') && styles.targetBadgeTextDone]}>
-                Water
-              </Text>
-            </View>
+              {/* Quick Target Badges Row */}
+              <View style={styles.badgesRow}>
+                <View style={[styles.targetBadge, isGoalReached('steps') && styles.targetBadgeDone]}>
+                  <Ionicons
+                    name={isGoalReached('steps') ? 'checkmark-circle' : 'footsteps'}
+                    size={13}
+                    color={isGoalReached('steps') ? COLORS.steps : COLORS.textMuted}
+                  />
+                  <Text style={[styles.targetBadgeText, isGoalReached('steps') && styles.targetBadgeTextDone]}>
+                    Steps
+                  </Text>
+                </View>
 
-            <View style={[styles.targetBadge, isGoalReached('calories') && styles.targetBadgeDone]}>
-              <Ionicons
-                name={isGoalReached('calories') ? 'checkmark-circle' : 'flame'}
-                size={13}
-                color={isGoalReached('calories') ? COLORS.calories : COLORS.textMuted}
-              />
-              <Text style={[styles.targetBadgeText, isGoalReached('calories') && styles.targetBadgeTextDone]}>
-                Calories
-              </Text>
-            </View>
+                <View style={[styles.targetBadge, isGoalReached('water') && styles.targetBadgeDone]}>
+                  <Ionicons
+                    name={isGoalReached('water') ? 'checkmark-circle' : 'water'}
+                    size={13}
+                    color={isGoalReached('water') ? COLORS.water : COLORS.textMuted}
+                  />
+                  <Text style={[styles.targetBadgeText, isGoalReached('water') && styles.targetBadgeTextDone]}>
+                    Water
+                  </Text>
+                </View>
 
-            <View style={[styles.targetBadge, isGoalReached('duration') && styles.targetBadgeDone]}>
-              <Ionicons
-                name={isGoalReached('duration') ? 'checkmark-circle' : 'timer'}
-                size={13}
-                color={isGoalReached('duration') ? COLORS.duration : COLORS.textMuted}
-              />
-              <Text style={[styles.targetBadgeText, isGoalReached('duration') && styles.targetBadgeTextDone]}>
-                Active
-              </Text>
-            </View>
-          </View>
-        </Card>
+                <View style={[styles.targetBadge, isGoalReached('calories') && styles.targetBadgeDone]}>
+                  <Ionicons
+                    name={isGoalReached('calories') ? 'checkmark-circle' : 'flame'}
+                    size={13}
+                    color={isGoalReached('calories') ? COLORS.calories : COLORS.textMuted}
+                  />
+                  <Text style={[styles.targetBadgeText, isGoalReached('calories') && styles.targetBadgeTextDone]}>
+                    Calories
+                  </Text>
+                </View>
 
-        {/* Section Heading */}
-        <Text style={styles.sectionHeading}>Track & Record Activity</Text>
+                <View style={[styles.targetBadge, isGoalReached('duration') && styles.targetBadgeDone]}>
+                  <Ionicons
+                    name={isGoalReached('duration') ? 'checkmark-circle' : 'timer'}
+                    size={13}
+                    color={isGoalReached('duration') ? COLORS.duration : COLORS.textMuted}
+                  />
+                  <Text style={[styles.targetBadgeText, isGoalReached('duration') && styles.targetBadgeTextDone]}>
+                    Active
+                  </Text>
+                </View>
+              </View>
+            </Card>
 
-        {/* Step Tracker Card */}
-        <StepTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+            {/* Section Heading */}
+            <Text style={styles.sectionHeading}>Daily Metrics</Text>
 
-        {/* Water Tracker Card */}
-        <WaterTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+            {/* Step Tracker Card */}
+            <StepTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
 
-        {/* Calorie Tracker Card */}
-        <CalorieTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
+            {/* Water Tracker Card */}
+            <WaterTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
 
-        {/* Reset / Clear Today's Activity Option */}
-        <TouchableOpacity
-          style={styles.resetButton}
-          onPress={handleResetActivity}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="refresh" size={16} color={COLORS.textMuted} />
-          <Text style={styles.resetButtonText}>Reset Today's Activity</Text>
-        </TouchableOpacity>
+            {/* Calorie Tracker Card */}
+            <CalorieTrackerCard onOpenGoalModal={() => setGoalModalVisible(true)} />
 
-        {/* Spacer at bottom */}
+            {/* Reset / Clear Today's Activity Option */}
+            <TouchableOpacity
+              style={styles.resetButton}
+              onPress={handleResetActivity}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="refresh" size={16} color={COLORS.textMuted} />
+              <Text style={styles.resetButtonText}>Reset Today's Numbers</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          /* Workout History View */
+          <WorkoutHistoryView />
+        )}
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
@@ -207,15 +260,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  scrollContent: {
-    paddingHorizontal: SPACING.md,
-    paddingBottom: SPACING.lg,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.sm,
   },
   dateText: {
     fontSize: 12,
@@ -225,7 +276,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   title: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '800',
     color: COLORS.textPrimary,
   },
@@ -233,7 +284,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.primaryLight,
-    paddingVertical: 8,
+    paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: RADIUS.round,
   },
@@ -241,6 +292,43 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: COLORS.primaryDark,
+  },
+  tabSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: '#E2E8F0',
+    marginHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    padding: 3,
+    marginBottom: SPACING.sm,
+  },
+  tabButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: RADIUS.sm,
+  },
+  tabButtonActive: {
+    backgroundColor: COLORS.card,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  tabButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  tabButtonTextActive: {
+    color: COLORS.primary,
+    fontWeight: '700',
+  },
+  scrollContent: {
+    paddingHorizontal: SPACING.md,
+    paddingBottom: SPACING.lg,
   },
   summaryCard: {
     backgroundColor: COLORS.card,

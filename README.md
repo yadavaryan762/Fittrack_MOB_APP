@@ -29,8 +29,24 @@ FitTrack is a modern, cross-platform mobile fitness and activity tracking applic
   - `GoalSettingModal` allowing users to configure custom targets for steps, water, calories, and duration with immediate real-time synchronization.
   - Daily progress summary banner with 4-target status pills (`Steps`, `Water`, `Calories`, `Duration`).
 
+### Day 3 – Completed Workout Management & Activity History
+- **Workout Logging Modal (`WorkoutFormModal`)**:
+  - Full workout logger with title, category selection chips, duration (minutes), estimated calories (kcal), date (YYYY-MM-DD), and optional notes.
+  - Automatic calorie estimation helper based on workout duration and sport intensity.
+- **Categorization Support (`workoutCategories.js`)**:
+  - 6 supported categories: **Running**, **Walking**, **Cycling**, **Gym**, **Yoga**, and **Other** with distinct icons, themes, and calorie burn rates.
+- **Edit and Delete Workouts (`WorkoutCard`)**:
+  - Pre-filled modal to update previously recorded workouts.
+  - Confirmation dialog with `Alert.alert` before deleting a record to prevent accidental data loss.
+- **Chronological Activity History View (`WorkoutHistoryView`)**:
+  - Segmented view switcher on Activity screen toggling between **Daily Tracker** and **Workout History**.
+  - Category filter chips (`All`, `Running`, `Gym`, `Cycling`, etc.) for quick filtering.
+  - High-level workout summary strip: **Total Workouts**, **Total Active Minutes**, and **Total Calories Burned**.
+  - Empty state with quick record prompt.
+- **Dashboard Integration**:
+  - `HomeScreen` displays live recent workout entries and provides 1-tap workout logging directly from the dashboard.
+
 ### Upcoming Development Milestones
-- **Day 3 (27 Nov)**: Workout management (workout logger, categories, edit/delete workout operations, activity history).
 - **Day 4 (28 Nov)**: Statistics & local data persistence (`AsyncStorage`, weekly summary charts, profile & target settings).
 - **Day 5 (29 Nov)**: Testing, edge case validation, and final presentation preparation.
 
@@ -137,8 +153,8 @@ FitTrack/
 |---|---|:---:|
 | **25 Nov 2026** | **Day 1:** Project initialization, navigation, and dashboard UI | ✅ Completed |
 | **26 Nov 2026** | **Day 2:** Daily fitness tracking (steps, water, calories, goals) | ✅ Completed |
-| **27 Nov 2026** | **Day 3:** Workout management (CRUD, categories, history) | ⏳ Next |
-| **28 Nov 2026** | **Day 4:** Statistics, charts, profile settings, AsyncStorage | 📋 Pending |
+| **27 Nov 2026** | **Day 3:** Workout management (CRUD, categories, history) | ✅ Completed |
+| **28 Nov 2026** | **Day 4:** Statistics, charts, profile settings, AsyncStorage | ⏳ Next |
 | **29 Nov 2026** | **Day 5:** Testing, edge-case fixes, and final project submission | 📋 Pending |
 
 ---
