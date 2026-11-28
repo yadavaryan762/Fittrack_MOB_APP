@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { STORAGE_KEYS, getItem, saveItem } from '../utils/storage';
 
 const WorkoutContext = createContext();
 
-// Initial sample workouts for realistic testing
+// Initial sample workouts for realistic first-run experience
 export const INITIAL_WORKOUTS = [
   {
     id: 'w-1',
@@ -44,6 +45,27 @@ export const INITIAL_WORKOUTS = [
 
 export function WorkoutProvider({ children }) {
   const [workouts, setWorkouts] = useState(INITIAL_WORKOUTS);
+  const isLoadedRef = useRef(false);
+
+  // Load workouts from AsyncStorage on mount
+  useEffect(() => {
+    async function loadWorkouts() {
+      const stored = await getItem(STORAGE_KEYS.WORKOUTS, null);
+      if (stored && Array.isArray(stored)) {
+        setWorkouts(stored);
+      }
+      isLoadedRef.current = true;
+    }
+
+    loadWorkouts();
+  }, []);
+
+  // Save workouts to AsyncStorage when workouts state changes (after initial load)
+  useEffect(() => {
+    if (isLoadedRef.current) {
+      saveItem(STORAGE_KEYS.WORKOUTS, workouts);
+    }
+  }, [workouts]);
 
   // Add a new workout
   const addWorkout = (workoutData) => {
@@ -86,6 +108,11 @@ export function WorkoutProvider({ children }) {
     setWorkouts((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // Reset to initial workouts
+  const resetWorkouts = () => {
+    setWorkouts(INITIAL_WORKOUTS);
+  };
+
   // Summary statistics
   const totalWorkoutCount = workouts.length;
   const totalWorkoutDuration = workouts.reduce((sum, item) => sum + (item.duration || 0), 0);
@@ -98,6 +125,7 @@ export function WorkoutProvider({ children }) {
         addWorkout,
         updateWorkout,
         deleteWorkout,
+        resetWorkouts,
         totalWorkoutCount,
         totalWorkoutDuration,
         totalWorkoutCalories,

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { STORAGE_KEYS, getItem, saveItem } from '../utils/storage';
 
 // Create the context for managing daily activity and goals across the app
 const ActivityContext = createContext();
@@ -23,6 +24,41 @@ export function ActivityProvider({ children }) {
 
   // Daily activity state (steps, water, calories, duration)
   const [activity, setActivity] = useState(DEFAULT_ACTIVITY);
+
+  // Track initial load completion
+  const isLoadedRef = useRef(false);
+
+  // Load persisted goals and activity from AsyncStorage on mount
+  useEffect(() => {
+    async function loadStoredData() {
+      const storedGoals = await getItem(STORAGE_KEYS.GOALS, null);
+      const storedActivity = await getItem(STORAGE_KEYS.ACTIVITY, null);
+
+      if (storedGoals) {
+        setGoals(storedGoals);
+      }
+      if (storedActivity) {
+        setActivity(storedActivity);
+      }
+      isLoadedRef.current = true;
+    }
+
+    loadStoredData();
+  }, []);
+
+  // Save goals to AsyncStorage whenever goals state updates (after initial load)
+  useEffect(() => {
+    if (isLoadedRef.current) {
+      saveItem(STORAGE_KEYS.GOALS, goals);
+    }
+  }, [goals]);
+
+  // Save activity to AsyncStorage whenever activity state updates (after initial load)
+  useEffect(() => {
+    if (isLoadedRef.current) {
+      saveItem(STORAGE_KEYS.ACTIVITY, activity);
+    }
+  }, [activity]);
 
   // Update a specific daily goal
   const updateGoal = (metric, value) => {
@@ -76,7 +112,7 @@ export function ActivityProvider({ children }) {
     return Math.round(((stepsRatio + caloriesRatio + waterRatio + durationRatio) / 4) * 100);
   };
 
-  // Direct activity updates (will be expanded in commit 2 for steps/water/calories)
+  // Direct activity updates
   const updateActivityMetric = (metric, value) => {
     const num = Math.max(0, parseInt(value, 10) || 0);
     setActivity((prev) => ({
