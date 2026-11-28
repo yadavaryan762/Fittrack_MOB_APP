@@ -5,18 +5,21 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ActivityProvider } from './src/context/ActivityContext';
 import { WorkoutProvider } from './src/context/WorkoutContext';
+import { ProfileProvider } from './src/context/ProfileContext';
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <ActivityProvider>
-        <WorkoutProvider>
-          <NavigationContainer>
-            <StatusBar style="dark" />
-            <AppNavigator />
-          </NavigationContainer>
-        </WorkoutProvider>
-      </ActivityProvider>
+      <ProfileProvider>
+        <ActivityProvider>
+          <WorkoutProvider>
+            <NavigationContainer>
+              <StatusBar style="dark" />
+              <AppNavigator />
+            </NavigationContainer>
+          </WorkoutProvider>
+        </ActivityProvider>
+      </ProfileProvider>
     </SafeAreaProvider>
   );
 }

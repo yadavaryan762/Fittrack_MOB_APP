@@ -18,9 +18,10 @@ import WorkoutFormModal from '../components/workout/WorkoutFormModal';
 import { COLORS, SPACING, RADIUS } from '../constants/theme';
 import { useActivity } from '../context/ActivityContext';
 import { useWorkouts } from '../context/WorkoutContext';
+import { useProfile } from '../context/ProfileContext';
 
 export default function HomeScreen({ navigation }) {
-  const [userName] = useState('Aryan');
+  const { profile } = useProfile();
   const [workoutModalVisible, setWorkoutModalVisible] = useState(false);
 
   const {
@@ -65,7 +66,7 @@ export default function HomeScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         {/* Welcome Header */}
-        <Header userName={userName} />
+        <Header userName={profile?.name || 'Athlete'} />
 
         {/* Hero Daily Goal Progress Card */}
         <GoalProgressCard
